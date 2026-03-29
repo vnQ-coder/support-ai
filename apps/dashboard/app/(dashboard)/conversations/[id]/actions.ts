@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthOrRedirect } from "@/lib/auth";
-import { db, conversations, messages, eq, and } from "@repo/db";
+import { db, conversations, messages, members, eq, and } from "@repo/db";
 import {
   addTagToConversation,
   removeTagFromConversation,
@@ -135,6 +135,23 @@ export async function assignConversation(
   const hasAccess = await verifyOrgOwnership(internalOrgId, conversationId);
   if (!hasAccess) {
     return { error: "Conversation not found." };
+  }
+
+  // Verify assignee belongs to the same organization
+  if (parsed.data.assigneeId) {
+    const [member] = await db
+      .select({ id: members.id })
+      .from(members)
+      .where(
+        and(
+          eq(members.id, parsed.data.assigneeId),
+          eq(members.organizationId, internalOrgId)
+        )
+      )
+      .limit(1);
+    if (!member) {
+      return { error: "Invalid assignee." };
+    }
   }
 
   await db

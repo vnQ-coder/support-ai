@@ -35,7 +35,7 @@ export default async function ConversationDetailPage({
   const [conversation, msgs, teamMembers, orgTagsList, convTags] =
     await Promise.all([
       getConversationById(internalOrgId, id),
-      getConversationMessages(id),
+      getConversationMessages(id, internalOrgId),
       getTeamMembers(internalOrgId),
       getOrgTags(internalOrgId),
       getConversationTags(id, internalOrgId),

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
 
 interface AttachmentButtonProps {
@@ -21,6 +21,13 @@ export function AttachmentButton({ apiBaseUrl, onAttach, disabled }: AttachmentB
   const [preview, setPreview] = useState<AttachmentPreview | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Revoke Object URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (preview?.previewUrl) URL.revokeObjectURL(preview.previewUrl);
+    };
+  }, [preview?.previewUrl]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -59,10 +59,13 @@ export function useWidgetConfig(
       return;
     }
 
+    const controller = new AbortController();
+
     const fetchConfig = async () => {
       try {
         const res = await fetch(
-          `${apiBaseUrl}/api/v1/widget/config?key=${encodeURIComponent(apiKey)}`
+          `${apiBaseUrl}/api/v1/widget/config?key=${encodeURIComponent(apiKey)}`,
+          { signal: controller.signal }
         );
         if (!res.ok) {
           throw new Error(
@@ -76,6 +79,7 @@ export function useWidgetConfig(
         const data = await res.json();
         setConfig(data);
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setError(err instanceof Error ? err.message : "Configuration error");
         setConfig(DEFAULT_CONFIG);
       } finally {
@@ -84,6 +88,8 @@ export function useWidgetConfig(
     };
 
     fetchConfig();
+
+    return () => controller.abort();
   }, [apiKey, apiBaseUrl]);
 
   return { config, isLoading, error };

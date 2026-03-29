@@ -262,7 +262,8 @@ export async function getConversationById(
 }
 
 export async function getConversationMessages(
-  conversationId: string
+  conversationId: string,
+  orgId: string
 ): Promise<MessageItem[]> {
   const rows = await db
     .select({
@@ -274,7 +275,13 @@ export async function getConversationMessages(
       createdAt: messages.createdAt,
     })
     .from(messages)
-    .where(eq(messages.conversationId, conversationId))
+    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+    .where(
+      and(
+        eq(messages.conversationId, conversationId),
+        eq(conversations.organizationId, orgId)
+      )
+    )
     .orderBy(messages.createdAt);
 
   return rows.map((row) => ({

@@ -13,7 +13,7 @@ import {
 export const PLAN_LIMITS = {
   starter:    { conversations: 1000,  teamMembers: 3,   knowledgeSources: 5 },
   growth:     { conversations: 5000,  teamMembers: 10,  knowledgeSources: 25 },
-  scale:      { conversations: 20000, teamMembers: 50,  knowledgeSources: 100 },
+  pro:        { conversations: 20000, teamMembers: 50,  knowledgeSources: 100 },
   enterprise: { conversations: -1,    teamMembers: -1,  knowledgeSources: -1 },
 } as const;
 

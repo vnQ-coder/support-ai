@@ -47,6 +47,10 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
     [createConversation]
   );
 
+  // Extract primitive values from contactInfo to stabilize useMemo deps
+  const contactEmail = contactInfo?.email;
+  const contactName = contactInfo?.name;
+
   // Create a stable Chat instance with transport
   const chat = useMemo(
     () =>
@@ -59,13 +63,20 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
           },
           body: {
             conversationId: persistedConversationId,
-            contactEmail: contactInfo?.email,
-            contactName: contactInfo?.name,
+            contactEmail,
+            contactName,
           },
         }) as any,
       }),
-    [apiKey, apiBaseUrl, persistedConversationId, contactInfo]
+    [apiKey, apiBaseUrl, persistedConversationId, contactEmail, contactName]
   );
+
+  // Cleanup Chat instance on unmount or when deps change
+  useEffect(() => {
+    return () => {
+      chat.destroy?.();
+    };
+  }, [chat]);
 
   const { messages, sendMessage, status } = useChat({ chat });
 
@@ -167,15 +178,21 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
 
   if (!config) return null;
 
-  const chatMessages = messages.map((m) => ({
-    id: m.id,
-    role: m.role as "user" | "assistant",
-    content:
-      m.parts
-        ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text)
-        .join("") ?? "",
-  }));
+  const chatMessages = useMemo(
+    () =>
+      messages.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        content:
+          m.parts
+            ?.filter(
+              (p): p is { type: "text"; text: string } => p.type === "text"
+            )
+            .map((p) => p.text)
+            .join("") ?? "",
+      })),
+    [messages]
+  );
 
   return (
     <div
