@@ -1,0 +1,39 @@
+{
+  "name": "supportai",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "predev": "find . -type d \\( -name .next -o -name .turbo \\) -not -path '*/node_modules/*' -exec xattr -w com.apple.fileprovider.ignore#P 1 {} + 2>/dev/null || true",
+    "dev": "turbo dev",
+    "dev:marketing": "turbo dev --filter=@repo/marketing",
+    "dev:dashboard": "turbo dev --filter=@repo/dashboard",
+    "dev:widget": "turbo dev --filter=@repo/widget",
+    "dev:api": "turbo dev --filter=@repo/api",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "clean": "find apps -name .next -type d -maxdepth 2 -exec rm -rf {} + 2>/dev/null; find . -name .turbo -type d -not -path '*/node_modules/*' -exec rm -rf {} + 2>/dev/null; echo 'Cleaned .next and .turbo caches'",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:generate": "pnpm --filter @repo/db generate",
+    "db:migrate": "pnpm --filter @repo/db migrate",
+    "db:push": "pnpm --filter @repo/db push",
+    "db:studio": "pnpm --filter @repo/db studio"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "tailwindcss": "^4.2.2",
+    "turbo": "^2.5.4"
+  },
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "geist": "^1.7.0",
+    "jsdom": "^29.0.1",
+    "vitest": "^4.1.2"
+  }
+}

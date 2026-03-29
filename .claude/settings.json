@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f apps/dashboard/middleware.ts ]; then echo '⚠️  HOOK: apps/dashboard/middleware.ts detected and removed (use proxy.ts instead)'; rm apps/dashboard/middleware.ts; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f apps/api/middleware.ts ]; then echo '⚠️  HOOK: apps/api/middleware.ts detected and removed (use proxy.ts instead)'; rm apps/api/middleware.ts; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

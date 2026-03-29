@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@repo/dashboard", "dev"],
+      "port": 3000,
+      "url": "http://localhost:3000/sign-up",
+      "healthCheckPath": "/api/health"
+    },
+    {
+      "name": "widget",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@repo/widget", "dev"],
+      "port": 3001
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@repo/api", "dev"],
+      "port": 3002
+    },
+    {
+      "name": "marketing",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@repo/marketing", "dev"],
+      "port": 3003,
+      "autoPort": true
+    }
+  ]
+}
