@@ -43,9 +43,9 @@ const SelectTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
 );
 SelectTrigger.displayName = "SelectTrigger";
 
-function SelectValue() {
+function SelectValue({ placeholder = "Select..." }: { placeholder?: string }) {
   const { value } = React.useContext(SelectContext);
-  return <span className="truncate">{value || "Select..."}</span>;
+  return <span className="truncate">{value || placeholder}</span>;
 }
 
 function SelectContent({ children, className }: { children: React.ReactNode; className?: string }) {

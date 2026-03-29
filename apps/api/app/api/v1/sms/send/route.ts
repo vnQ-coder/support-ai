@@ -17,7 +17,7 @@ import {
   and,
 } from "@repo/db";
 import { sendSms } from "@repo/ai";
-import { validateApiKey, apiError } from "../../../_lib/auth";
+import { validateApiKey, apiError } from "../../_lib/auth";
 
 // ---- Helpers --------------------------------------------------------------
 

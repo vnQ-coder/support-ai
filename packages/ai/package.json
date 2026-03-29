@@ -16,6 +16,8 @@
     "@repo/shared": "workspace:*",
     "ai": "^6",
     "drizzle-orm": "~0.39.3",
+    "resend": "^6.9.4",
+    "twilio": "^5",
     "zod": "^3"
   },
   "devDependencies": {

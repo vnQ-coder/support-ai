@@ -128,4 +128,4 @@ export type RichMessageMetadata = {
 
 export type WidgetTheme = "light" | "dark" | "auto";
 
-export type SlaStatus = "ok" | "at_risk" | "breached" | "completed";
+// SlaStatus is defined and exported from sla-utils.ts

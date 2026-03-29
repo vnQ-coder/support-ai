@@ -2,7 +2,21 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@repo/shared"],
+  transpilePackages: [
+    "@repo/shared",
+    "react-markdown",
+    "rehype-sanitize",
+    // ESM-only transitive deps of react-markdown / unified ecosystem
+    "unified",
+    "remark-parse",
+    "remark-rehype",
+    "hast-util-sanitize",
+    "devlop",
+    "micromark",
+    "mdast-util-from-markdown",
+    "mdast-util-to-hast",
+    "unist-util-stringify-position",
+  ],
 
   // Required for monorepo: lets Next.js trace files outside the app directory
   outputFileTracingRoot: path.join(__dirname, "../../"),

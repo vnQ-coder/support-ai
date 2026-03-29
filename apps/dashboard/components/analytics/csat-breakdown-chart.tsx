@@ -69,8 +69,8 @@ export function CsatBreakdownChart({ data }: CsatBreakdownChartProps) {
               borderRadius: "0.5rem",
               fontSize: "0.875rem",
             }}
-            formatter={(value: number, _name: string, props: { payload: { percentage: number } }) => [
-              `${value} responses (${props.payload.percentage}%)`,
+            formatter={(value: number, _name: string, props: { payload?: { percentage?: number } }) => [
+              `${value} responses (${props.payload?.percentage ?? 0}%)`,
               "Count",
             ]}
           />

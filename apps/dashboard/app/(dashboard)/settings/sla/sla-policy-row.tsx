@@ -84,7 +84,7 @@ export function SlaPolicyRow({ policy }: SlaPolicyRowProps) {
               `Delete SLA policy "${policy.name}"? This cannot be undone.`
             )
           ) {
-            startTransition(() => deleteSlaPolicyAction(policy.id));
+            startTransition(async () => { await deleteSlaPolicyAction(policy.id); });
           }
         }}
       >

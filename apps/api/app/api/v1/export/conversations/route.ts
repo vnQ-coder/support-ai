@@ -47,7 +47,7 @@ function toCSV(rows: Record<string, unknown>[]): string {
 
 // ---- Validation -------------------------------------------------------------
 
-function parseISODate(value: string | null): Date | null {
+function parseISODate(value: string | null, _label?: string): Date | null {
   if (!value) return null;
   const d = new Date(value);
   if (isNaN(d.getTime())) return null;

@@ -28,7 +28,7 @@ function PopoverTrigger({ asChild, children, ...props }: React.ButtonHTMLAttribu
   return <button type="button" onClick={() => setOpen(!open)} {...props}>{children}</button>;
 }
 
-function PopoverContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function PopoverContent({ className, children, align: _align, ...props }: React.HTMLAttributes<HTMLDivElement> & { align?: "start" | "center" | "end" }) {
   const { open, setOpen } = React.useContext(PopoverContext);
   const ref = React.useRef<HTMLDivElement>(null);
 

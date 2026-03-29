@@ -156,7 +156,7 @@ export default function DocsPage() {
                         <a
                           href={link.href}
                           className={`block text-sm transition-colors ${
-                            link.active
+                            "active" in link && link.active
                               ? "font-medium text-primary"
                               : "text-muted-foreground hover:text-foreground"
                           }`}
