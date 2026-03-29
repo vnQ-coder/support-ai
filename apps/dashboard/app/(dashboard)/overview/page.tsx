@@ -17,6 +17,7 @@ import { NeedsAttentionTable } from "@/components/overview/needs-attention-table
 import { EscalationPanel } from "@/components/overview/escalation-panel";
 import { DashboardEmptyState } from "@/components/overview/dashboard-empty-state";
 import { ChartSkeleton } from "@/components/overview/chart-skeleton";
+import { SlaComplianceCard } from "@/components/sla/sla-compliance-card";
 import type { DateRangeWithComparison } from "@/lib/dashboard-utils";
 
 const VALID_PRESETS = new Set<string>(["7d", "30d", "90d"]);
@@ -81,6 +82,11 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           <CsatChartSection dateRange={dateRange} orgId={internalOrgId} />
         </Suspense>
       </div>
+
+      {/* SLA Compliance — streams independently */}
+      <Suspense fallback={<ChartSkeleton />}>
+        <SlaComplianceCard orgId={internalOrgId} />
+      </Suspense>
 
       {/* Escalation Queue — streams independently */}
       <Suspense fallback={<TableSkeleton />}>
