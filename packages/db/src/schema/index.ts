@@ -7,3 +7,4 @@ export * from "./subscriptions";
 export * from "./tags";
 export * from "./canned-responses";
 export * from "./working-hours";
+export * from "./sla";
