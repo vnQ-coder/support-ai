@@ -2,12 +2,17 @@ import { UserButton } from "@clerk/nextjs";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { NotificationToastProvider } from "@/components/notifications/notification-toast-provider";
+import { getAuthOrRedirect } from "@/lib/auth";
+import { getEscalationCount } from "@/lib/queries/escalations";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { internalOrgId } = await getAuthOrRedirect();
+  const escalationCount = await getEscalationCount(internalOrgId).catch(() => 0);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar */}
@@ -27,7 +32,7 @@ export default function DashboardLayout({
             />
           </div>
         </div>
-        <SidebarNav />
+        <SidebarNav escalationCount={escalationCount} />
       </aside>
 
       {/* Main content */}

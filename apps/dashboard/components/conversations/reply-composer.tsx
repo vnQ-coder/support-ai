@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { Send } from "lucide-react";
+import { CannedResponsePicker } from "./canned-response-picker";
 
 interface ReplyComposerProps {
   conversationId: string;
@@ -15,6 +16,7 @@ export function ReplyComposer({
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [cannedTrigger, setCannedTrigger] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
@@ -42,11 +44,37 @@ export function ReplyComposer({
       {error && (
         <p className="mb-2 text-xs text-red-400">{error}</p>
       )}
+      <div className="relative">
+        {cannedTrigger !== null && (
+          <CannedResponsePicker
+            trigger={cannedTrigger}
+            anchorRef={textareaRef}
+            onSelect={(responseContent) => {
+              setContent(prev => prev.replace(/(?:^|\s)\/\w*$/, (match) => {
+                const prefix = match.startsWith(" ") ? " " : "";
+                return prefix + responseContent;
+              }));
+              setCannedTrigger(null);
+            }}
+            onClose={() => setCannedTrigger(null)}
+          />
+        )}
+      </div>
       <div className="flex items-end gap-3">
         <textarea
           ref={textareaRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setContent(val);
+            // Detect if user typed "/" starting a new word
+            const match = val.match(/(?:^|\s)\/(\w*)$/);
+            if (match) {
+              setCannedTrigger(match[1] ?? "");
+            } else {
+              setCannedTrigger(null);
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               handleSubmit(e);
@@ -65,6 +93,7 @@ export function ReplyComposer({
           <Send className="h-4 w-4" />
         </button>
       </div>
+      <p className="text-xs text-muted-foreground mt-1">Type <code>/</code> to insert a saved reply</p>
     </form>
   );
 }

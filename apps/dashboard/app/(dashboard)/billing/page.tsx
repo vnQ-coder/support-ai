@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { getAuthOrRedirect } from "@/lib/auth";
 import { getBillingSummary } from "@/lib/queries/billing";
+import { getUsageMetrics } from "@/lib/queries/usage";
 import { CurrentPlan } from "@/components/billing/current-plan";
+import { UsageMeter } from "@/components/billing/usage-meter";
 import { PlanCard } from "@/components/billing/plan-card";
 import type { PlanId } from "@repo/shared";
 
@@ -15,6 +17,23 @@ function CurrentPlanSkeleton() {
       <div className="h-4 w-24 rounded bg-muted mb-4" />
       <div className="h-8 w-32 rounded bg-muted mb-2" />
       <div className="h-4 w-20 rounded bg-muted" />
+    </div>
+  );
+}
+
+function UsageMeterSkeleton() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 animate-pulse space-y-4">
+      <div className="h-5 w-36 rounded bg-muted" />
+      <div className="h-3 w-24 rounded bg-muted" />
+      <div className="space-y-3 pt-2">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="space-y-1">
+            <div className="h-4 w-full rounded bg-muted" />
+            <div className="h-2 w-full rounded bg-muted" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -37,8 +56,16 @@ function PlanCardSkeleton() {
 // ---- Async sections --------------------------------------------------------
 
 async function BillingOverview({ orgId }: { orgId: string }) {
-  const billing = await getBillingSummary(orgId);
-  return <CurrentPlan billing={billing} />;
+  const [billing, usage] = await Promise.all([
+    getBillingSummary(orgId),
+    getUsageMetrics(orgId),
+  ]);
+  return (
+    <div className="space-y-6">
+      <UsageMeter usage={usage} plan={billing.plan} />
+      <CurrentPlan billing={billing} />
+    </div>
+  );
 }
 
 async function PlanGrid({ orgId }: { orgId: string }) {
@@ -74,9 +101,16 @@ export default async function BillingPage() {
         </p>
       </div>
 
-      {/* Current plan summary */}
-      <section className="max-w-sm">
-        <Suspense fallback={<CurrentPlanSkeleton />}>
+      {/* Usage + Current plan summary */}
+      <section className="max-w-lg">
+        <Suspense
+          fallback={
+            <div className="space-y-6">
+              <UsageMeterSkeleton />
+              <CurrentPlanSkeleton />
+            </div>
+          }
+        >
           <BillingOverview orgId={internalOrgId} />
         </Suspense>
       </section>

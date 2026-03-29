@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, Palette, Users, Key, Radio } from "lucide-react";
+import { Settings, Palette, Users, Key, Radio, Tag, MessageSquareText, Clock, ShieldAlert } from "lucide-react";
 
 const navItems = [
   { label: "General", href: "/settings", icon: Settings },
@@ -10,6 +10,10 @@ const navItems = [
   { label: "Widget", href: "/settings/widget", icon: Palette },
   { label: "Team", href: "/settings/team", icon: Users },
   { label: "API Keys", href: "/settings/api-keys", icon: Key },
+  { label: "Labels", href: "/settings/tags", icon: Tag },
+  { label: "Saved Replies", href: "/settings/canned-responses", icon: MessageSquareText },
+  { label: "Working Hours", href: "/settings/working-hours", icon: Clock },
+  { label: "SLA Policies", href: "/settings/sla", icon: ShieldAlert },
 ] as const;
 
 export function SettingsNav() {

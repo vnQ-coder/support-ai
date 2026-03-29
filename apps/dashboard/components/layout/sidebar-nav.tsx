@@ -3,18 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV_ITEMS = [
-  { label: "Overview", href: "/overview" },
-  { label: "Conversations", href: "/conversations" },
-  { label: "Contacts", href: "/contacts" },
-  { label: "Knowledge Base", href: "/knowledge" },
-  { label: "Analytics", href: "/analytics" },
-  { label: "Billing", href: "/billing" },
-  { label: "Settings", href: "/settings" },
-] as const;
+interface NavItem {
+  label: string;
+  href: string;
+  badge?: number;
+}
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  escalationCount?: number;
+}
+
+export function SidebarNav({ escalationCount = 0 }: SidebarNavProps) {
   const pathname = usePathname();
+
+  const NAV_ITEMS: NavItem[] = [
+    { label: "Overview", href: "/overview" },
+    { label: "Conversations", href: "/conversations" },
+    { label: "Escalations", href: "/escalations", badge: escalationCount },
+    { label: "Contacts", href: "/contacts" },
+    { label: "Knowledge Base", href: "/knowledge" },
+    { label: "Analytics", href: "/analytics" },
+    { label: "Billing", href: "/billing" },
+    { label: "Settings", href: "/settings" },
+  ];
 
   return (
     <nav className="space-y-1 p-4">
@@ -24,13 +35,18 @@ export function SidebarNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+            className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                 : "text-sidebar-foreground hover:bg-sidebar-accent/50"
             }`}
           >
-            {item.label}
+            <span>{item.label}</span>
+            {item.badge != null && item.badge > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-semibold text-destructive-foreground">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            )}
           </Link>
         );
       })}

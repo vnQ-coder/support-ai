@@ -4,3 +4,6 @@ export * from "./knowledge";
 export * from "./email";
 export * from "./sms";
 export * from "./subscriptions";
+export * from "./tags";
+export * from "./canned-responses";
+export * from "./working-hours";

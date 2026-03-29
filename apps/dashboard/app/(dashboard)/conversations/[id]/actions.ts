@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { getAuthOrRedirect } from "@/lib/auth";
 import { db, conversations, messages, eq, and } from "@repo/db";
+import {
+  addTagToConversation,
+  removeTagFromConversation,
+} from "@/lib/queries/tags";
 import { z } from "zod";
 
 // ---- Validation Schemas ---------------------------------------------------
@@ -144,4 +148,24 @@ export async function assignConversation(
   revalidatePath(`/conversations/${conversationId}`);
   revalidatePath("/conversations");
   return {};
+}
+
+// ---- Tag Actions ----------------------------------------------------------
+
+export async function addTagAction(
+  conversationId: string,
+  tagId: string
+): Promise<void> {
+  const { internalOrgId } = await getAuthOrRedirect();
+  await addTagToConversation(conversationId, tagId, internalOrgId);
+  revalidatePath(`/conversations/${conversationId}`);
+}
+
+export async function removeTagAction(
+  conversationId: string,
+  tagId: string
+): Promise<void> {
+  const { internalOrgId } = await getAuthOrRedirect();
+  await removeTagFromConversation(conversationId, tagId, internalOrgId);
+  revalidatePath(`/conversations/${conversationId}`);
 }

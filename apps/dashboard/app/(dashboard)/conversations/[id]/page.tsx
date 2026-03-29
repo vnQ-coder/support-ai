@@ -7,11 +7,14 @@ import {
   getConversationMessages,
   getTeamMembers,
 } from "@/lib/queries/conversations";
+import { getOrgTags, getConversationTags } from "@/lib/queries/tags";
 import { MessageThread } from "@/components/conversations/message-thread";
 import { ReplyComposer } from "@/components/conversations/reply-composer";
 import { ConversationSidebar } from "@/components/conversations/conversation-sidebar";
 import { ConversationPoller } from "@/components/conversations/conversation-poller";
 import { StatusBadge } from "@/components/conversations/status-badge";
+import { TagBadge } from "@/components/conversations/tag-badge";
+import { TagSelector } from "@/components/conversations/tag-selector";
 import {
   sendAgentReply,
   updateConversationStatus,
@@ -28,12 +31,15 @@ export default async function ConversationDetailPage({
   const { internalOrgId } = await getAuthOrRedirect();
   const { id } = await params;
 
-  // Fetch conversation, messages, and team members in parallel
-  const [conversation, msgs, teamMembers] = await Promise.all([
-    getConversationById(internalOrgId, id),
-    getConversationMessages(id),
-    getTeamMembers(internalOrgId),
-  ]);
+  // Fetch conversation, messages, team members, and tags in parallel
+  const [conversation, msgs, teamMembers, orgTagsList, convTags] =
+    await Promise.all([
+      getConversationById(internalOrgId, id),
+      getConversationMessages(id),
+      getTeamMembers(internalOrgId),
+      getOrgTags(internalOrgId),
+      getConversationTags(id, internalOrgId),
+    ]);
 
   if (!conversation) {
     notFound();
@@ -79,12 +85,30 @@ export default async function ConversationDetailPage({
         </div>
 
         {/* Sidebar */}
-        <ConversationSidebar
-          conversation={conversation}
-          teamMembers={teamMembers}
-          updateStatusAction={updateConversationStatus}
-          assignAction={assignConversation}
-        />
+        <div className="flex flex-col">
+          <ConversationSidebar
+            conversation={conversation}
+            teamMembers={teamMembers}
+            updateStatusAction={updateConversationStatus}
+            assignAction={assignConversation}
+          />
+          {/* Labels */}
+          <div className="space-y-2 border-t border-border px-4 pt-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Labels
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {convTags.map((tag) => (
+                <TagBadge key={tag.id} tag={tag} />
+              ))}
+              <TagSelector
+                conversationId={id}
+                orgTags={orgTagsList}
+                selectedTagIds={convTags.map((t) => t.id)}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
