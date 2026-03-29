@@ -13,18 +13,20 @@ import { CsatSurvey } from "./csat-survey";
 import { PreChatForm } from "./pre-chat-form";
 
 interface ChatWidgetProps {
-  apiKey: string;
+  apiKey?: string;
+  token?: string;
   apiBaseUrl: string;
 }
 
-export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
-  const { config, isLoading, error } = useWidgetConfig(apiKey, apiBaseUrl);
+export function ChatWidget({ apiKey, token, apiBaseUrl }: ChatWidgetProps) {
+  const authKey = token || apiKey || "";
+  const { config, isLoading, error } = useWidgetConfig(authKey, apiBaseUrl);
   const {
     conversationId: persistedConversationId,
     contactInfo,
     isRestoring,
     createConversation,
-  } = useConversation(config?.organizationId || apiKey, apiBaseUrl);
+  } = useConversation(config?.organizationId || authKey, apiBaseUrl);
   const [showPreChat, setShowPreChat] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
   const [isEscalating, setIsEscalating] = useState(false);
@@ -59,7 +61,7 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
         transport: new DefaultChatTransport({
           api: `${apiBaseUrl}/api/v1/chat`,
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${authKey}`,
           },
           body: {
             conversationId: persistedConversationId,
@@ -68,13 +70,13 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
           },
         }) as any,
       }),
-    [apiKey, apiBaseUrl, persistedConversationId, contactEmail, contactName]
+    [authKey, apiBaseUrl, persistedConversationId, contactEmail, contactName]
   );
 
   // Cleanup Chat instance on unmount or when deps change
   useEffect(() => {
     return () => {
-      chat.destroy?.();
+      // Chat class does not expose a destroy method; no cleanup needed
     };
   }, [chat]);
 
@@ -157,6 +159,22 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
     setCsatDismissed(true);
   }, []);
 
+  const chatMessages = useMemo(
+    () =>
+      messages.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        content:
+          m.parts
+            ?.filter(
+              (p): p is { type: "text"; text: string } => p.type === "text"
+            )
+            .map((p) => p.text)
+            .join("") ?? "",
+      })),
+    [messages]
+  );
+
   // Loading state
   if (isLoading) {
     return (
@@ -177,22 +195,6 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
   }
 
   if (!config) return null;
-
-  const chatMessages = useMemo(
-    () =>
-      messages.map((m) => ({
-        id: m.id,
-        role: m.role as "user" | "assistant",
-        content:
-          m.parts
-            ?.filter(
-              (p): p is { type: "text"; text: string } => p.type === "text"
-            )
-            .map((p) => p.text)
-            .join("") ?? "",
-      })),
-    [messages]
-  );
 
   return (
     <div
@@ -249,7 +251,7 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
             <CsatSurvey
               conversationId={conversationId}
               apiUrl={apiBaseUrl}
-              widgetKey={apiKey}
+              widgetKey={authKey}
               onDismiss={handleCsatDismiss}
             />
           )}
