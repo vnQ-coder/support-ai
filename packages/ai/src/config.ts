@@ -1,17 +1,21 @@
-// AI model configuration — all via AI Gateway (provider/model strings)
+// AI model configuration
+// Using Google Gemini (free tier) for local development
+// Switch to AI Gateway (provider/model strings) for production on Vercel
+
+import { google } from "@ai-sdk/google";
 
 export const AI_MODELS = {
   /** Primary model for customer-facing chat responses */
-  chat: "anthropic/claude-sonnet-4.6",
+  chat: google("gemini-2.0-flash"),
 
   /** Fast model for intent classification and routing */
-  classify: "anthropic/claude-haiku-4.5",
+  classify: google("gemini-2.0-flash"),
 
   /** Model for embedding generation */
-  embedding: "openai/text-embedding-3-small",
+  embedding: google.textEmbeddingModel("text-embedding-004"),
 
   /** Model for complex multi-step reasoning */
-  agent: "anthropic/claude-sonnet-4.6",
+  agent: google("gemini-2.0-flash"),
 } as const;
 
 export const AI_CONFIG = {
