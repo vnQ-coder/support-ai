@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey, apiError } from "../../_lib/auth";
 import { widgetRatelimit, checkRatelimit } from "../../_lib/ratelimit";
+import { buildCorsHeaders, corsOptionsResponse } from "../../_lib/cors";
 import { db, widgetConfigs } from "@repo/db";
 import { eq } from "drizzle-orm";
 
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
         status: 429,
         headers: {
           "Retry-After": String(Math.ceil((rl.reset! - Date.now()) / 1000)),
-          "Access-Control-Allow-Origin": "*",
+          ...buildCorsHeaders(request, []),
         },
       }
     );
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(defaultConfig, {
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        ...buildCorsHeaders(request, []),
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
@@ -71,6 +72,19 @@ export async function GET(request: NextRequest) {
     .limit(1);
 
   const row = rows[0];
+  const allowedDomains = (row?.allowedDomains as string[]) || [];
+  const corsHeaders = buildCorsHeaders(request, allowedDomains);
+
+  // Enforce origin restriction when allowedDomains is configured
+  if (
+    allowedDomains.length > 0 &&
+    (corsHeaders as Record<string, string>)["Access-Control-Allow-Origin"] === "null"
+  ) {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "Origin not allowed" } },
+      { status: 403, headers: corsHeaders }
+    );
+  }
 
   const config = row
     ? {
@@ -91,19 +105,12 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(config, {
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      ...corsHeaders,
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
     },
   });
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    },
-  });
+export async function OPTIONS(request: NextRequest) {
+  return corsOptionsResponse(request, []);
 }

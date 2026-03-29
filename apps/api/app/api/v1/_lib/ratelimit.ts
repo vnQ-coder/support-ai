@@ -26,6 +26,21 @@ export const widgetRatelimit = createRatelimiter(60, '1 m');
 export const apiRatelimit = createRatelimiter(100, '1 m');
 
 /**
+ * Build a composite rate-limit key that includes session, IP, and org.
+ * When a session is available, ties the limit to the session+IP to prevent
+ * abuse across sessions. Falls back to IP+org when no session exists.
+ */
+export function buildRateLimitKey(
+  sessionId: string | null,
+  ip: string,
+  orgId: string
+): string {
+  return sessionId
+    ? `chat:${sessionId}:${ip}:${orgId}`
+    : `chat:${ip}:${orgId}`;
+}
+
+/**
  * Check rate limit for a given identifier.
  * Returns { allowed: true } if limiter is null (Upstash not configured) — fail open.
  */

@@ -1,0 +1,58 @@
+{
+  "widget": {
+    "loading": "Loading...",
+    "poweredBy": "Powered by SupportAI"
+  },
+  "header": {
+    "defaultTitle": "Support",
+    "subtitle": "Typically replies instantly",
+    "minimize": "Minimize chat"
+  },
+  "chat": {
+    "greeting": "Hi! How can we help you today?",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "charLimit": "characters remaining"
+  },
+  "preChat": {
+    "namePlaceholder": "Your name (optional)",
+    "emailPlaceholder": "Your email *",
+    "emailError": "Please enter a valid email address",
+    "startChat": "Start Chat"
+  },
+  "messages": {
+    "typing": "Typing",
+    "feedbackThanks": "Thanks for your feedback!",
+    "copyCode": "Copy",
+    "copied": "Copied!"
+  },
+  "escalation": {
+    "title": "Talk to a human?",
+    "description": "Would you like to be connected with a support agent?",
+    "connect": "Connect me",
+    "dismiss": "No thanks"
+  },
+  "csat": {
+    "title": "How was your experience?",
+    "submit": "Submit",
+    "thanks": "Thank you for your feedback!"
+  },
+  "suggestions": {
+    "getStarted": "How do I get started?",
+    "pricing": "What are your pricing plans?",
+    "accountHelp": "I need help with my account",
+    "talkToHuman": "Talk to a human"
+  },
+  "errors": {
+    "connectionFailed": "Connection failed. Please try again.",
+    "messageTooLong": "Message is too long",
+    "uploadFailed": "Upload failed. Try again.",
+    "fileTooLarge": "File must be under 5MB",
+    "dismiss": "Dismiss"
+  },
+  "attachments": {
+    "attach": "Attach file",
+    "uploading": "Uploading...",
+    "send": "Send"
+  }
+}

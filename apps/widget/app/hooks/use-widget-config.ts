@@ -15,6 +15,15 @@ export interface WidgetConfig {
     citations: boolean;
     handoff: boolean;
   };
+  logoUrl?: string;
+  widgetTitle?: string;
+  autoOpenDelay?: number;
+  preChatFields?: Array<{ name: string; type: string; required: boolean }>;
+  theme?: string;
+  soundEnabled?: boolean;
+  offlineMessage?: string;
+  positionOffsetX?: number;
+  positionOffsetY?: number;
 }
 
 interface UseWidgetConfigResult {

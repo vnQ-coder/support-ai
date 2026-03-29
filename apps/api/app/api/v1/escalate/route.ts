@@ -14,7 +14,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validateApiKey, apiError } from "../_lib/auth";
-import { db, conversations, messages } from "@repo/db";
+import { buildCorsHeaders, corsOptionsResponse } from "../_lib/cors";
+import { db, conversations, messages, widgetConfigs } from "@repo/db";
 import { eq, and } from "drizzle-orm";
 import { assignToAgent } from "@repo/ai";
 
@@ -60,6 +61,19 @@ export async function POST(request: Request) {
 
   const { conversationId, reason, priority } = parsed.data;
 
+  // Fetch allowed domains for dynamic CORS
+  let allowedDomains: string[] = [];
+  if (process.env.DATABASE_URL) {
+    const widgetRows = await db
+      .select({ allowedDomains: widgetConfigs.allowedDomains })
+      .from(widgetConfigs)
+      .where(eq(widgetConfigs.organizationId, auth.organizationId))
+      .limit(1);
+    allowedDomains = widgetRows[0]?.allowedDomains ?? [];
+  }
+
+  const corsHeaders = buildCorsHeaders(request, allowedDomains);
+
   // DEV_MODE fallback
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
@@ -70,7 +84,7 @@ export async function POST(request: Request) {
         priority,
         assignedAgent: { id: "member_mock_1", name: "Support Agent" },
       },
-      { headers: { "Access-Control-Allow-Origin": "*" } }
+      { headers: corsHeaders }
     );
   }
 
@@ -154,17 +168,11 @@ export async function POST(request: Request) {
         : null,
       systemMessageId: systemMsgId,
     },
-    { headers: { "Access-Control-Allow-Origin": "*" } }
+    { headers: corsHeaders }
   );
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    },
-  });
+export async function OPTIONS(request: Request) {
+  // For preflight we cannot authenticate, so pass empty allowedDomains (falls back to wildcard)
+  return corsOptionsResponse(request, []);
 }

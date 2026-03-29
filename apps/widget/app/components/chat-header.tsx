@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Minus } from "lucide-react";
+import { Minus } from "lucide-react";
 import type { WidgetConfig } from "../hooks/use-widget-config";
 
 interface ChatHeaderProps {
@@ -12,7 +12,7 @@ export function ChatHeader({ config, onMinimize }: ChatHeaderProps) {
   return (
     <div
       className="flex items-center justify-between px-4 py-3 border-b"
-      style={{ backgroundColor: config.primaryColor }}
+      style={{ backgroundColor: "var(--widget-primary)" }}
     >
       <div className="flex items-center gap-3">
         <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">

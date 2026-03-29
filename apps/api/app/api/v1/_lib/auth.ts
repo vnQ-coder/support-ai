@@ -109,6 +109,94 @@ export function validateOrigin(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Widget session tokens (short-lived JWT via Web Crypto HMAC-SHA256)
+// ---------------------------------------------------------------------------
+
+const SESSION_SECRET = new TextEncoder().encode(
+  process.env.WIDGET_SESSION_SECRET || "dev-secret-change-in-production"
+);
+
+/**
+ * Create a short-lived session token for the chat widget.
+ * The token is a compact JWT (HS256) containing orgId, a session id, and expiry.
+ *
+ * Expiry: 15 minutes.  The widget should refresh before expiry.
+ */
+export async function createSessionToken(
+  orgId: string
+): Promise<{ token: string; expiresAt: number }> {
+  const expiresAt = Math.floor(Date.now() / 1000) + 900; // 15 min
+  const payload = {
+    orgId,
+    sid: crypto.randomUUID().slice(0, 16),
+    exp: expiresAt,
+  };
+
+  const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const body = btoa(JSON.stringify(payload));
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    SESSION_SECRET,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(`${header}.${body}`)
+  );
+  const sig = btoa(String.fromCharCode(...new Uint8Array(signature)));
+
+  return { token: `${header}.${body}.${sig}`, expiresAt };
+}
+
+/**
+ * Validate a widget session token.
+ * Returns the orgId and sessionId if valid, null otherwise.
+ */
+export async function validateSessionToken(
+  token: string
+): Promise<{ orgId: string; sessionId: string } | null> {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const [header, body, sig] = parts as [string, string, string];
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      SESSION_SECRET,
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      Uint8Array.from(atob(sig), (c) => c.charCodeAt(0)),
+      new TextEncoder().encode(`${header}.${body}`)
+    );
+    if (!valid) return null;
+
+    const payload = JSON.parse(atob(body));
+    if (
+      typeof payload.exp !== "number" ||
+      payload.exp < Math.floor(Date.now() / 1000)
+    ) {
+      return null;
+    }
+    if (typeof payload.orgId !== "string" || typeof payload.sid !== "string") {
+      return null;
+    }
+
+    return { orgId: payload.orgId, sessionId: payload.sid };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Create a standardized error response.
  */

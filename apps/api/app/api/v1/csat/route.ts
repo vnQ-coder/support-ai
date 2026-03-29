@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { db, conversations, apiKeys, eq, and, isNull } from "@repo/db";
+import { db, conversations, apiKeys, widgetConfigs, eq, and, isNull } from "@repo/db";
 import { apiError } from "../_lib/auth";
 import { checkRatelimit, apiRatelimit } from "../_lib/ratelimit";
+import { buildCorsHeaders, corsOptionsResponse } from "../_lib/cors";
 
 /**
  * Zod schema for CSAT submission request body.
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
         status: 429,
         headers: {
           "Retry-After": String(Math.ceil((rl.reset! - Date.now()) / 1000)),
-          "Access-Control-Allow-Origin": "*",
+          ...buildCorsHeaders(request, []),
         },
       }
     );
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
       { ok: true },
-      { headers: { "Access-Control-Allow-Origin": "*" } }
+      { headers: buildCorsHeaders(request, []) }
     );
   }
 
@@ -100,6 +101,16 @@ export async function POST(request: NextRequest) {
   }
 
   const orgId = keyRows[0]!.organizationId;
+
+  // Look up the org's allowed domains for dynamic CORS
+  const configRows = await db
+    .select({ allowedDomains: widgetConfigs.allowedDomains })
+    .from(widgetConfigs)
+    .where(eq(widgetConfigs.organizationId, orgId))
+    .limit(1);
+
+  const allowedDomains = (configRows[0]?.allowedDomains as string[]) || [];
+  const corsHeaders = buildCorsHeaders(request, allowedDomains);
 
   // Look up the conversation and verify it belongs to the same org
   const convRows = await db
@@ -143,20 +154,14 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(
     { ok: true },
-    { headers: { "Access-Control-Allow-Origin": "*" } }
+    { headers: corsHeaders }
   );
 }
 
 /**
  * OPTIONS handler for CORS preflight requests.
  */
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+export async function OPTIONS(request: NextRequest) {
+  // No org context during preflight, so allow all (POST will enforce)
+  return corsOptionsResponse(request, []);
 }

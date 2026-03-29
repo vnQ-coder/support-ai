@@ -106,3 +106,26 @@ export interface ApiError {
     details?: Record<string, unknown>;
   };
 }
+
+export type PreChatData = { name?: string; email: string };
+
+export type MessageFeedback = "thumbs_up" | "thumbs_down";
+
+export type MessageType = "text" | "card" | "quick_reply" | "system" | "image";
+
+export type RichMessageMetadata = {
+  messageType?: MessageType;
+  options?: string[]; // For quick_reply
+  cardTitle?: string;
+  cardDescription?: string;
+  cardImageUrl?: string;
+  cardActionUrl?: string;
+  cardActionLabel?: string;
+  attachmentUrl?: string;
+  attachmentType?: string;
+  attachmentName?: string;
+};
+
+export type WidgetTheme = "light" | "dark" | "auto";
+
+export type SlaStatus = "ok" | "at_risk" | "breached" | "completed";

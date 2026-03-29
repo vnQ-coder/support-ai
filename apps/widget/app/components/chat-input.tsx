@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, type KeyboardEvent } from "react";
+import { useState, useCallback, useRef, type KeyboardEvent } from "react";
 import { Send } from "lucide-react";
 
 interface ChatInputProps {
@@ -11,13 +11,21 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, placeholder, disabled }: ChatInputProps) {
   const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const resetTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  }, []);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setInput("");
-  }, [input, disabled, onSend]);
+    resetTextareaHeight();
+  }, [input, disabled, onSend, resetTextareaHeight]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -33,14 +41,20 @@ export function ChatInput({ onSend, placeholder, disabled }: ChatInputProps) {
     <div className="border-t p-3">
       <div className="flex items-end gap-2">
         <textarea
+          ref={textareaRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            const el = e.target;
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none rounded-xl border bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
-          style={{ maxHeight: "120px" }}
+          style={{ maxHeight: "120px", overflowY: "auto" }}
         />
         <button
           onClick={handleSend}

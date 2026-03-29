@@ -4,6 +4,7 @@ import {
   timestamp,
   varchar,
   boolean,
+  integer,
   jsonb,
 } from "drizzle-orm/pg-core";
 
@@ -66,6 +67,17 @@ export const widgetConfigs = pgTable("widget_configs", {
     .default("bottom-right"),
   allowedDomains: jsonb("allowed_domains").$type<string[]>().default([]),
   showBranding: boolean("show_branding").notNull().default(true),
+  logoUrl: text("logo_url"),
+  widgetTitle: varchar("widget_title", { length: 255 }),
+  autoOpenDelay: integer("auto_open_delay"),
+  preChatFields: jsonb("pre_chat_fields").$type<Array<{name: string; type: string; required: boolean}>>().default([]),
+  customCss: text("custom_css"),
+  bubbleIcon: varchar("bubble_icon", { length: 20 }).notNull().default("chat"),
+  soundEnabled: boolean("sound_enabled").notNull().default(true),
+  offlineMessage: text("offline_message"),
+  theme: varchar("theme", { length: 10 }).notNull().default("light"),
+  positionOffsetX: integer("position_offset_x").notNull().default(20),
+  positionOffsetY: integer("position_offset_y").notNull().default(20),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

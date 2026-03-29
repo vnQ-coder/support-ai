@@ -1,11 +1,6 @@
 // @repo/db — Database client and schema exports
 
-export * from "./schema/organizations";
-export * from "./schema/conversations";
-export * from "./schema/knowledge";
-export * from "./schema/email";
-export * from "./schema/sms";
-export * from "./schema/subscriptions";
+export * from "./schema";
 export { db } from "./client";
 export type { Database } from "./client";
 

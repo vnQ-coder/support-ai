@@ -43,6 +43,8 @@ export const SUPPORTED_LANGUAGES = [
   "da", "fi", "el", "he", "hu", "no", "ro", "sk", "uk", "ms",
 ] as const;
 
+export const WIDGET_MAX_MESSAGE_LENGTH = 2000;
+
 export const RATE_LIMITS = {
   chatMessages: { max: 30, windowMs: 60_000 },
   apiRequests: { max: 100, windowMs: 60_000 },

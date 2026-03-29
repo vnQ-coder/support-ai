@@ -4,11 +4,13 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { useChat, Chat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useWidgetConfig } from "../hooks/use-widget-config";
+import { useConversation } from "../hooks/use-conversation";
 import { ChatHeader } from "./chat-header";
 import { MessageList } from "./message-list";
 import { ChatInput } from "./chat-input";
 import { EscalationBanner } from "./escalation-banner";
 import { CsatSurvey } from "./csat-survey";
+import { PreChatForm } from "./pre-chat-form";
 
 interface ChatWidgetProps {
   apiKey: string;
@@ -17,12 +19,33 @@ interface ChatWidgetProps {
 
 export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
   const { config, isLoading, error } = useWidgetConfig(apiKey, apiBaseUrl);
+  const {
+    conversationId: persistedConversationId,
+    contactInfo,
+    isRestoring,
+    createConversation,
+  } = useConversation(config?.organizationId || apiKey, apiBaseUrl);
+  const [showPreChat, setShowPreChat] = useState(true);
   const [showEscalation, setShowEscalation] = useState(false);
   const [isEscalating, setIsEscalating] = useState(false);
   const [assignedAgentName, setAssignedAgentName] = useState<string | null>(null);
   const [showCsatSurvey, setShowCsatSurvey] = useState(false);
   const [csatDismissed, setCsatDismissed] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  // Skip pre-chat if conversation already exists from localStorage
+  useEffect(() => {
+    if (persistedConversationId) setShowPreChat(false);
+  }, [persistedConversationId]);
+
+  const handlePreChatSubmit = useCallback(
+    async (data: { name?: string; email: string }) => {
+      await createConversation(data);
+      setShowPreChat(false);
+    },
+    [createConversation]
+  );
 
   // Create a stable Chat instance with transport
   const chat = useMemo(
@@ -34,9 +57,14 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
           headers: {
             Authorization: `Bearer ${apiKey}`,
           },
+          body: {
+            conversationId: persistedConversationId,
+            contactEmail: contactInfo?.email,
+            contactName: contactInfo?.name,
+          },
         }) as any,
       }),
-    [apiKey, apiBaseUrl]
+    [apiKey, apiBaseUrl, persistedConversationId, contactInfo]
   );
 
   const { messages, sendMessage, status } = useChat({ chat });
@@ -102,6 +130,15 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
     if (isResolved) {
       setShowCsatSurvey(true);
     }
+
+    // Check for low-confidence responses and trigger escalation
+    const confidenceMatch = content.match(/\[confidence:(\d+\.?\d*)\]/);
+    if (confidenceMatch) {
+      const confidence = parseFloat(confidenceMatch[1]);
+      if (confidence < 0.5) {
+        setShowEscalation(true);
+      }
+    }
   }, [messages, csatDismissed, showCsatSurvey]);
 
   const handleCsatDismiss = useCallback(() => {
@@ -141,7 +178,14 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
   }));
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div
+      className="flex h-full flex-col bg-background"
+      style={
+        {
+          "--widget-primary": config.primaryColor || "#6366f1",
+        } as React.CSSProperties
+      }
+    >
       <ChatHeader
         config={config}
         onMinimize={() => {
@@ -149,35 +193,57 @@ export function ChatWidget({ apiKey, apiBaseUrl }: ChatWidgetProps) {
         }}
       />
 
-      <MessageList
-        messages={chatMessages}
-        isStreaming={isStreaming}
-        greeting={config.greeting}
-      />
-
-      {showEscalation && (
-        <EscalationBanner
-          onRequestHuman={handleRequestHuman}
-          onDismiss={() => setShowEscalation(false)}
-          isEscalating={isEscalating}
-          agentName={assignedAgentName}
+      {showPreChat && !persistedConversationId ? (
+        <PreChatForm
+          onSubmit={handlePreChatSubmit}
+          greeting={config.greeting}
+          primaryColor={config.primaryColor}
         />
-      )}
+      ) : (
+        <>
+          <MessageList
+            messages={chatMessages}
+            isStreaming={isStreaming}
+            greeting={config.greeting}
+          />
 
-      {showCsatSurvey && conversationId && (
-        <CsatSurvey
-          conversationId={conversationId}
-          apiUrl={apiBaseUrl}
-          widgetKey={apiKey}
-          onDismiss={handleCsatDismiss}
-        />
-      )}
+          {chatError && (
+            <div className="mx-3 mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {chatError}{" "}
+              <button
+                onClick={() => setChatError(null)}
+                className="ml-2 underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
-      <ChatInput
-        onSend={handleSend}
-        placeholder={config.placeholder}
-        disabled={isStreaming}
-      />
+          {showEscalation && (
+            <EscalationBanner
+              onRequestHuman={handleRequestHuman}
+              onDismiss={() => setShowEscalation(false)}
+              isEscalating={isEscalating}
+              agentName={assignedAgentName}
+            />
+          )}
+
+          {showCsatSurvey && conversationId && (
+            <CsatSurvey
+              conversationId={conversationId}
+              apiUrl={apiBaseUrl}
+              widgetKey={apiKey}
+              onDismiss={handleCsatDismiss}
+            />
+          )}
+
+          <ChatInput
+            onSend={handleSend}
+            placeholder={config.placeholder}
+            disabled={isStreaming}
+          />
+        </>
+      )}
 
       {config.showBranding && (
         <div className="border-t px-4 py-2 text-center">

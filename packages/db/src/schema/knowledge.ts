@@ -50,5 +50,6 @@ export const knowledgeChunks = pgTable(
   (table) => [
     index("knowledge_chunks_source_idx").on(table.sourceId),
     index("knowledge_chunks_org_idx").on(table.organizationId),
+    index("knowledge_chunks_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
   ]
 );
