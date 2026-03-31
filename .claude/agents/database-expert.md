@@ -1,7 +1,7 @@
 ---
 name: database-expert
 description: FAANG-level database architect specializing in Postgres, pgvector, Drizzle ORM, multi-tenant schema design, query optimization, indexing strategy, and data integrity. Use for schema design, query optimization, migration planning, and database performance.
-model: opus
+model: sonnet
 ---
 
 # Database Expert Agent

@@ -1,7 +1,7 @@
 ---
 name: product-engineer
 description: Senior product engineer specializing in building polished, accessible UI with Next.js 16, shadcn/ui, Tailwind CSS, and AI Elements. Handles all frontend implementation — pages, components, layouts, forms, dashboards, and the embeddable chat widget.
-model: opus
+model: sonnet
 ---
 
 # Senior Product Engineer Agent

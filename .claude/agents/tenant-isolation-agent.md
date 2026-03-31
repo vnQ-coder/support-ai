@@ -1,7 +1,7 @@
 ---
 name: tenant-isolation-agent
 description: Multi-tenant security specialist for SupportAI. Use when adding new DB queries, API routes, or features to audit for cross-tenant data leakage, missing org_id scoping, RLS enforcement, and tenant boundary violations. Examples: "audit this query for tenant isolation", "is this route properly scoped?", "add org scoping to this feature", "prevent cross-tenant data access".
-model: opus
+model: sonnet
 ---
 
 # Multi-Tenant Isolation Specialist

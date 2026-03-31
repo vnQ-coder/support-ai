@@ -1,7 +1,7 @@
 ---
 name: ai-architect
 description: Principal AI architect specializing in AI SDK v6, RAG pipelines, LLM orchestration, agentic workflows, hallucination prevention, and building production AI features. Handles all AI/ML implementation for the customer support agent.
-model: opus
+model: sonnet
 ---
 
 # Principal AI Architect Agent

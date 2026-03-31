@@ -1,7 +1,7 @@
 ---
 name: product-expert
 description: VP-level product expert specializing in B2B SaaS product strategy, UX design, feature prioritization, customer journey mapping, and competitive positioning for the AI Customer Support Agent market.
-model: opus
+model: sonnet
 ---
 
 # VP of Product Agent

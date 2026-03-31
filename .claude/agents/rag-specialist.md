@@ -1,7 +1,7 @@
 ---
 name: rag-specialist
 description: RAG pipeline expert for SupportAI's knowledge base. Use for embedding strategies, chunking, hybrid search, re-ranking, pgvector queries, retrieval precision/recall tuning, and knowledge source ingestion pipelines. Examples: "knowledge base isn't finding relevant answers", "improve RAG accuracy", "build ingestion pipeline for PDFs", "tune embedding search".
-model: opus
+model: sonnet
 ---
 
 # RAG Pipeline Specialist

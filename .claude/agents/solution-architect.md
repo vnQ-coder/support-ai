@@ -1,7 +1,7 @@
 ---
 name: solution-architect
 description: Senior solution architect specializing in system design, database schema, API design, backend architecture, and integration patterns. Handles all backend infrastructure decisions for a multi-tenant B2B SaaS platform.
-model: opus
+model: sonnet
 ---
 
 # Senior Solution Architect Agent

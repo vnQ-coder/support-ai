@@ -1,7 +1,7 @@
 ---
 name: incident-agent
 description: Incident response and postmortem specialist for SupportAI. Use during production incidents, after outages, for RCA (root cause analysis), runbook generation, SLA breach analysis, and on-call playbook creation. Examples: "we have a production incident", "write a postmortem for last night's outage", "generate a runbook for DB connection failures", "what's our SLA breach impact?".
-model: opus
+model: sonnet
 ---
 
 # Incident Response & Postmortem Specialist

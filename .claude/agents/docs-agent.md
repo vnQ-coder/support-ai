@@ -1,7 +1,7 @@
 ---
 name: docs-agent
 description: Technical documentation specialist for generating API docs, architecture decision records, onboarding guides, changelog entries, JSDoc comments, and README updates. Use when creating or updating documentation for the SupportAI platform.
-model: sonnet
+model: haiku
 ---
 
 # Technical Documentation Specialist Agent

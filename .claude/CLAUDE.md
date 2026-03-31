@@ -124,3 +124,70 @@ EOF
 
 Named pages persist between runs. Full Playwright Page API available.
 Only use Chrome MCP when you specifically need to interact with the user's live browser session.
+
+## Token Optimization Rules
+
+### 1. Use `model: haiku` for simple agents
+Agents doing straightforward work (lint checks, file moves, simple CRUD) should use `model: haiku`.
+Reserve `model: opus` for complex reasoning (architecture, security audits, debugging).
+Reserve `model: sonnet` for balanced work (building features, code review).
+
+### 2. Agent prompt efficiency
+- Give agents ONLY the context they need — don't paste full specs when they only need a file list
+- Use file paths instead of file contents when possible — let the agent read what it needs
+- For parallel agents, specify exact file ownership to prevent redundant reads
+
+### 3. dev-browser efficiency patterns
+```bash
+# BAD: Screenshot for every check (large image tokens)
+dev-browser --headless <<'EOF'
+const page = await browser.getPage("test");
+await page.goto("http://localhost:3000");
+const buf = await page.screenshot();
+await saveScreenshot(buf, "check.png");
+EOF
+
+# GOOD: Text snapshot only — 10x fewer tokens
+dev-browser --headless <<'EOF'
+const page = await browser.getPage("test");
+await page.goto("http://localhost:3000");
+console.log(JSON.stringify({ url: page.url(), title: await page.title() }));
+EOF
+
+# GOOD: Combine multiple checks in ONE script (1 Bash call vs 4)
+dev-browser --headless --timeout 20 <<'EOF'
+const results = {};
+for (const [name, url] of [["dashboard","http://localhost:3000"],["widget","http://localhost:3001?apiKey=test"],["api","http://localhost:3002/api/health"],["marketing","http://localhost:3003"]]) {
+  const page = await browser.getPage(name);
+  try {
+    await page.goto(url);
+    results[name] = { status: "OK", url: page.url(), title: await page.title() };
+  } catch(e) {
+    results[name] = { status: "FAIL", error: e.message };
+  }
+}
+console.log(JSON.stringify(results, null, 2));
+EOF
+
+# GOOD: Use incremental snapshots for multi-step flows
+dev-browser --headless <<'EOF'
+const page = await browser.getPage("flow");
+await page.goto("http://localhost:3000/sign-in");
+const snap1 = await page.snapshotForAI({ track: "flow" });
+console.log("STEP1:", snap1.full.substring(0, 500));
+await page.fill('input[name="email"]', 'test@test.com');
+await page.click('button[type="submit"]');
+const snap2 = await page.snapshotForAI({ track: "flow" });
+// snap2.incremental only contains CHANGES since snap1 — much smaller!
+console.log("STEP2:", snap2.incremental || snap2.full.substring(0, 500));
+EOF
+```
+
+### 4. Prefer Grep/Glob over Agent for simple searches
+- Direct `Grep` call: ~100 tokens
+- Agent with Explore: ~2-5K tokens
+- Only use Agent/Explore for broad multi-file investigations
+
+### 5. Batch tool calls
+- Make ALL independent tool calls in a single message (parallel execution)
+- Don't read files one-by-one when you can read them all at once
