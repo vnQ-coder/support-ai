@@ -91,3 +91,36 @@ Available in `.claude/commands/`:
 - Dark mode default for dashboard
 - Multi-tenant: every query scoped by `organization_id`
 - Flat-rate pricing model ($49/$99/$199/custom)
+
+## Browser Testing: dev-browser (MANDATORY)
+**Always use `dev-browser` for browser verification, E2E testing, and debugging.**
+**Do NOT use Chrome MCP tools (`mcp__Claude_in_Chrome__*`) — they consume ~10x more tokens.**
+
+```bash
+# Navigate and check page renders
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+await page.goto("http://localhost:3000");
+console.log(JSON.stringify({ url: page.url(), title: await page.title() }));
+EOF
+
+# Get page structure (replaces Chrome MCP read_page)
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+const snap = await page.snapshotForAI();
+console.log(snap.full);
+EOF
+
+# Check for JS errors (replaces Chrome MCP read_console_messages)
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+const errors = [];
+page.on("pageerror", e => errors.push(e.message));
+await page.goto("http://localhost:3000");
+await page.waitForTimeout(2000);
+console.log(JSON.stringify({ errors }));
+EOF
+```
+
+Named pages persist between runs. Full Playwright Page API available.
+Only use Chrome MCP when you specifically need to interact with the user's live browser session.

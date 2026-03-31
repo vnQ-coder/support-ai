@@ -34,9 +34,32 @@ What is happening?
 
 Check these in order:
 1. **Terminal / dev server output** -- unhandled exceptions, compilation errors
-2. **Browser console** -- client-side errors, failed network requests
-3. **Browser Network tab** -- HTTP status codes, response bodies, CORS headers
+2. **Browser console via dev-browser** (NOT Chrome MCP — saves ~10x tokens):
+   ```bash
+   dev-browser --headless --timeout 15 <<'EOF'
+   const page = await browser.getPage("debug");
+   const errors = [];
+   page.on("pageerror", e => errors.push(e.message));
+   page.on("console", msg => { if (msg.type() === "error") errors.push(msg.text()); });
+   await page.goto("http://localhost:3000/THE_BROKEN_ROUTE");
+   await page.waitForTimeout(3000);
+   console.log(JSON.stringify({ errors, url: page.url(), title: await page.title() }));
+   EOF
+   ```
+3. **Network requests via dev-browser**:
+   ```bash
+   dev-browser --headless --timeout 15 <<'EOF'
+   const page = await browser.getPage("debug");
+   const failed = [];
+   page.on("response", r => { if (r.status() >= 400) failed.push({ url: r.url(), status: r.status() }); });
+   await page.goto("http://localhost:3000/THE_BROKEN_ROUTE");
+   await page.waitForTimeout(3000);
+   console.log(JSON.stringify({ failedRequests: failed }));
+   EOF
+   ```
 4. **Vercel function logs** -- `vercel logs` for production issues
+
+**IMPORTANT**: Always use `dev-browser` instead of Chrome MCP tools (`mcp__Claude_in_Chrome__*`) for debugging. Chrome MCP accessibility trees cost ~2-5K tokens per call. `dev-browser` returns compact text via Bash (~200-500 tokens).
 
 ### Level 3: State Verification (5 minutes)
 

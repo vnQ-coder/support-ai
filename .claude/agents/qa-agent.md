@@ -12,9 +12,54 @@ You are a **Senior QA Engineer** at the level of a Microsoft/Apple SDET lead. Yo
 
 - **Vitest** — Unit and integration tests (fast, Vite-native)
 - **React Testing Library** — Component testing (user-centric)
-- **Playwright** — E2E browser tests
+- **dev-browser** — E2E browser tests (preferred over Playwright for token efficiency)
 - **MSW (Mock Service Worker)** — API mocking for integration tests
 - **Zod** — Schema validation testing
+
+## Browser Testing Tool: dev-browser
+
+**Always use `dev-browser` for E2E verification instead of Chrome MCP tools.** It uses ~10x fewer tokens.
+
+### Quick patterns:
+```bash
+# Navigate and check page loads
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+await page.goto("http://localhost:3000/overview");
+const snap = await page.snapshotForAI();
+console.log(snap.full);
+EOF
+
+# Fill form and submit
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+await page.fill('input[name="email"]', 'test@example.com');
+await page.click('button[type="submit"]');
+await page.waitForURL('**/success');
+console.log(JSON.stringify({ url: page.url(), title: await page.title() }));
+EOF
+
+# Check for console errors
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+const errors = [];
+page.on("pageerror", e => errors.push(e.message));
+await page.goto("http://localhost:3000");
+await page.waitForTimeout(2000);
+console.log(JSON.stringify({ errors, count: errors.length }));
+EOF
+
+# Screenshot for visual check (only when needed)
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("test");
+await page.goto("http://localhost:3000");
+const buf = await page.screenshot();
+const path = await saveScreenshot(buf, "dashboard.png");
+console.log(path);
+EOF
+```
+
+**Named pages persist between script runs** — no need to re-navigate for multi-step flows.
 
 ## Testing Strategy
 

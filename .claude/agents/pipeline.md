@@ -413,9 +413,10 @@ Run all tests and report results.
 
 ---
 
-## STAGE 9: VERIFY — Build, Performance, Docs & Memory
+## STAGE 9: VERIFY — Build, Browser Verification, Performance, Docs & Memory
 
 **Sub-stage 9a — Build**: Delegate to `devops-agent`
+**Sub-stage 9a+ — Browser Verification**: Run `dev-browser` headless checks on all apps
 **Sub-stage 9b — Performance** (AI features or new pages): Delegate to `cost-optimizer` + `performance-agent`
 **Sub-stage 9c — Docs** (if new API routes or significant changes): Delegate to `docs-agent`
 **Sub-stage 9d — Memory**: Update project memory yourself (no sub-agent needed)
@@ -444,6 +445,59 @@ Verify this feature is production-ready:
 ```
 
 **On failure**: Fix build/lint/type errors directly, re-verify
+
+### Sub-stage 9a+: Browser Verification (dev-browser)
+
+After build passes, run lightweight browser checks using `dev-browser` (NOT Chrome MCP — saves ~10x tokens):
+
+```bash
+# Check each app compiles and renders without errors
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("dashboard");
+await page.goto("http://localhost:3000");
+const snap = await page.snapshotForAI();
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  snapshot: snap.full.substring(0, 2000),
+}));
+EOF
+
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("widget");
+await page.goto("http://localhost:3001?apiKey=test");
+const snap = await page.snapshotForAI();
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  snapshot: snap.full.substring(0, 2000),
+}));
+EOF
+
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("api");
+await page.goto("http://localhost:3002/api/health");
+console.log(JSON.stringify({
+  url: page.url(),
+  status: "reachable",
+}));
+EOF
+
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("marketing");
+await page.goto("http://localhost:3003");
+const snap = await page.snapshotForAI();
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  snapshot: snap.full.substring(0, 2000),
+}));
+EOF
+```
+
+Check for: redirect loops, blank pages, error messages, missing content. Fix and re-verify if issues found.
+
+**IMPORTANT**: Always prefer `dev-browser` over Chrome MCP tools (`mcp__Claude_in_Chrome__*`) for verification. Chrome MCP returns large accessibility trees (~2-5K tokens per call). `dev-browser --headless` returns compact text output via Bash (~200-500 tokens per check).
 
 ### Sub-stage 9b: Performance & Cost Check (run if AI features OR new pages were built)
 

@@ -29,6 +29,44 @@ You are a **Principal Performance Engineer** at the level of a Google Chrome Dev
 | Marketing | < 100KB gzip | < 250KB | SEO-critical |
 | API | N/A (server) | N/A | Function cold start < 250ms |
 
+### Browser Performance Measurement (dev-browser)
+
+**Always use `dev-browser` instead of Chrome MCP tools** for performance checks — ~10x fewer tokens.
+
+```bash
+# Measure page load timing
+dev-browser --headless --timeout 20 <<'EOF'
+const page = await browser.getPage("perf");
+await page.goto("http://localhost:3000/overview");
+const timing = await page.evaluate(() => {
+  const nav = performance.getEntriesByType("navigation")[0];
+  const paint = performance.getEntriesByType("paint");
+  return {
+    ttfb: Math.round(nav.responseStart - nav.requestStart),
+    domContentLoaded: Math.round(nav.domContentLoadedEventEnd - nav.startTime),
+    load: Math.round(nav.loadEventEnd - nav.startTime),
+    fcp: paint.find(p => p.name === "first-contentful-paint")?.startTime,
+    transferSize: Math.round(nav.transferSize / 1024) + "KB",
+  };
+});
+console.log(JSON.stringify(timing));
+EOF
+
+# Check JS bundle sizes loaded
+dev-browser --headless --timeout 15 <<'EOF'
+const page = await browser.getPage("perf");
+await page.goto("http://localhost:3000");
+const resources = await page.evaluate(() => {
+  return performance.getEntriesByType("resource")
+    .filter(r => r.name.endsWith(".js"))
+    .map(r => ({ name: r.name.split("/").pop(), size: Math.round(r.transferSize/1024) + "KB" }))
+    .sort((a, b) => parseInt(b.size) - parseInt(a.size))
+    .slice(0, 10);
+});
+console.log(JSON.stringify(resources, null, 2));
+EOF
+```
+
 ### 3. React Rendering Performance
 
 **Server Components (default)**:

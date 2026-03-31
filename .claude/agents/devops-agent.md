@@ -147,3 +147,36 @@ When invoked by the pipeline orchestrator, you are **Stage 7** (final gate).
 
 **Success signal**: Verdict is DEPLOY_READY — all checks green
 **Failure signal**: Build, type, or lint errors → list them for the engineer to fix
+
+## Browser Verification with dev-browser
+
+After build passes, use `dev-browser --headless` to verify apps load correctly. **Do NOT use Chrome MCP tools** — they consume ~10x more tokens.
+
+```bash
+# Verify all 4 apps render without errors
+for port in 3000 3001 3002 3003; do
+  dev-browser --headless --timeout 15 <<EOF
+const page = await browser.getPage("verify-$port");
+try {
+  await page.goto("http://localhost:$port");
+  console.log(JSON.stringify({
+    port: $port,
+    url: page.url(),
+    title: await page.title(),
+    status: "OK"
+  }));
+} catch(e) {
+  console.log(JSON.stringify({ port: $port, status: "FAIL", error: e.message }));
+}
+EOF
+done
+
+# Check for redirect loops (common after auth changes)
+dev-browser --headless --timeout 10 <<'EOF'
+const page = await browser.getPage("redirect-check");
+const redirects = [];
+page.on("response", r => { if ([301,302,307,308].includes(r.status())) redirects.push(r.url()); });
+await page.goto("http://localhost:3000").catch(() => {});
+console.log(JSON.stringify({ redirectCount: redirects.length, loop: redirects.length > 5, urls: redirects.slice(0, 5) }));
+EOF
+```
